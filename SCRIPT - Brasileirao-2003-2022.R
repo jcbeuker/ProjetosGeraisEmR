@@ -8,6 +8,7 @@
 #   <https://www.kaggle.com/datasets/josevitormichelin/brazilian-football-champi
 #    onship-brasileiro>
 #
+# ANÁLISE DE REGRESSAO
 ################################################################################
 # INSTALAÇÃO E CARREGAMENTO DE PACOTES NECESSÁRIOS            
 ################################################################################
@@ -61,6 +62,14 @@ summary(brasileirao)
 # Estrutura da tabela
 str(brasileirao)
 
+# Converte a coluna goals_difference para numérica
+#brasileirao <- transform(brasileirao,
+ #                        goals_difference = as.numeric(goals_difference))
+
+
+# Estrutura da tabela após a conversão
+#str(brasileirao)
+
 # Dimensoes da base
 dim(brasileirao)
 
@@ -79,5 +88,50 @@ campeoes_colunasMaisImportantes <- campeoes[,c("year","team","points","games",
                                                "goals_scored","goals_against",
                                                "goals_difference",
                                                "perc_points_won")]
+campeoes_colunasMaisImportantes %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = "striped",
+                full_width = F,
+                font_size = 14)
 
 summary(campeoes_colunasMaisImportantes)
+
+################################################################################
+#                            GRÁFICO DE DISPERSÃO                              #
+################################################################################
+# Pontos em função de gols marcados
+ggplotly(
+  ggplot(campeoes_colunasMaisImportantes, aes(x = points, y = goals_scored)) +
+  geom_point(color = "blue", size = 2.0) +
+  geom_smooth(aes(color = "Fitted Values"),
+              method = "lm", formula = y ~x, se = F, linewidth = 1) +
+    xlim(0, max(campeoes_colunasMaisImportantes$points)) +
+    ylim(0, max(campeoes_colunasMaisImportantes$goals_scored)) +
+    labs(x = "Pontos",
+         y = "Goals Marcados",
+         title = paste("R²:",
+                       round(((cor(campeoes_colunasMaisImportantes$points, 
+                                   campeoes_colunasMaisImportantes$goals_scored))^2),4))) +
+    scale_color_manual("Legenda:",
+                       values = "grey",) +
+    theme_classic()
+)
+
+# Pontos em função do saldo de gols
+ggplotly(
+  ggplot(campeoes_colunasMaisImportantes, aes(x = points, y = goals_difference)) +
+    geom_point(color = "green", size = 2.0) +
+    geom_smooth(aes(color = "Fitted Values"),
+                method = "lm", formula = y ~x, se = F, linewidth = 1) +
+    xlim(0, max(campeoes_colunasMaisImportantes$points)) +
+    ylim(0, max(campeoes_colunasMaisImportantes$goals_difference)) +
+    labs(x = "Pontos",
+         y = "Saldo de Gols",
+         title = paste("R²:",
+                       round(((cor(campeoes_colunasMaisImportantes$points, 
+                                   campeoes_colunasMaisImportantes$goals_difference))^2),4))) +
+    scale_color_manual("Legenda:",
+                       values = "grey",) +
+    theme_classic()
+)
+

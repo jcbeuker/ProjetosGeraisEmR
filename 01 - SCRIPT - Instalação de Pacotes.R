@@ -6,7 +6,8 @@ pacotes <- c("plotly","tidyverse","ggrepel","fastDummies","knitr","kableExtra",
              "splines","reshape2","PerformanceAnalytics","correlation","see",
              "ggraph","psych","nortest","rgl","car","ggside","tidyquant","olsrr",
              "jtools","ggstance","magick","cowplot","emojifont","beepr","Rcpp",
-             "equatiomatic", "readr")
+             "equatiomatic", "readr", "sparklyr", "dplyr", "arrow", "nlme",
+             "ggplot2", "carrier", "mlflow", "reticulate", "stats", "glue")
 
 options(rgl.debug = TRUE)
 
