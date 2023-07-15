@@ -133,6 +133,31 @@ geom_point(aes(x = points, y = goals_scored, size = goals_difference,
 esquisser(brasileirao, viewer = "browser")
 
 ################################################################################
+# ANÁLISE DE CLUSTER
+################################################################################
+# Separando as estatísticas de cada time em uma lista
+tabelaTimesBrasileirao <- brasileirao[brasileirao$year == 2003 &
+                                            brasileirao$position == 1,]
+
+i_brasileirao <- 1
+i_tabelaTimes <- 1
+while(i_brasileirao <= 410){
+  for(i_tabelaTimes in 1:length(tabelaTimesBrasileirao)){
+    timeBrasileirao <- (brasileirao$team[i_brasileirao])
+    timeASerIncluidoNaLista <- (tabelaTimesBrasileirao$team[i_tabelaTimes])
+    print(timeBrasileirao)
+    print(timeASerIncluidoNaLista)
+    if(timeBrasileirao == timeASerIncluidoNaLista){
+      print("Time já está na lista tabelaTimesBrasileirao")
+    } else{
+      print("Incluir time na lista")
+      tabelaTimesBrasileirao[i_tabelaTimes,] <- brasileirao[i_brasileirao,]
+    }
+  }
+}
+
+
+################################################################################
 # REGRESSÃO LINEAR SIMPLES
 ################################################################################
 # Pontos em função de gols marcados
