@@ -2,8 +2,8 @@
 # IDENTIFICACAO                            
 ################################################################################
 # 13.07.2023 - José Caetano Beuker <https://www.linkedin.com/in/jcbeuker/>
-# Análise de todos os times e suas respectivas posicoes no Brasileirao 
-# de 2003 a 2019
+# Análise de todos os times campeões do Campeonato Brasileiro - Série A 
+# de 2003 a 2022
 # Adaptado da Base de dados disponível em:
 #   <https://www.kaggle.com/datasets/josevitormichelin/brazilian-football-champi
 #    onship-brasileiro>
@@ -30,7 +30,7 @@ if(sum(as.numeric(!pacotes %in% installed.packages())) != 0){
   sapply(pacotes, require, character = T) 
 }
 ################################################################################
-# DOWNLOAD E SELECAO DAS VARIAVEIS DESEJADAS              
+# CARREGAMENTO DOS DADOS              
 ################################################################################
 # Convertendo o arquivo para o encoding UFT-F
 # writeLines(iconv(readLines("202301_SeguroDefeso.csv"), 
@@ -42,36 +42,9 @@ if(sum(as.numeric(!pacotes %in% installed.packages())) != 0){
 #                           sep= ";", dec = ",") 
 
 brasileirao <- read.csv( "dataset-Posicoes-Times-Brasileirao-2003-2022.csv"
-                        , sep = ";"
-                        , dec = ","
-                        , encoding = "UTF-8")
-
-################################################################################
-# ANALISE EXPLORATORIA DA BASE DE DADOS            
-################################################################################
-
-# Head dos dados
-head(brasileirao, 5)
-
-# Tail dos dados
-tail(brasileirao, 5)
-
-# Estatistica descritiva
-summary(brasileirao)
-
-# Estrutura da tabela
-str(brasileirao)
-
-# Converte a coluna goals_difference para numérica
-#brasileirao <- transform(brasileirao,
- #                        goals_difference = as.numeric(goals_difference))
-
-
-# Estrutura da tabela após a conversão
-#str(brasileirao)
-
-# Dimensoes da base
-dim(brasileirao)
+                         , sep = ";"
+                         , dec = ","
+                         , encoding = "UTF-8")
 
 ################################################################################
 # ANALISE EXPLORATORIA DOS CAMPEOES DE CADA ANO            
@@ -83,53 +56,70 @@ print(campeoes)
 # Estatistica descritiva
 summary(campeoes)
 
-campeoes_colunasMaisImportantes <- campeoes[,c("year","team","points","games",
-                                               "victories","draws","losses",
-                                               "goals_scored","goals_against",
-                                               "goals_difference",
-                                               "perc_points_won")]
-campeoes_colunasMaisImportantes %>% 
+campeoes %>% 
   kable() %>% 
   kable_styling(bootstrap_options = "striped",
                 full_width = F,
                 font_size = 14)
 
-summary(campeoes_colunasMaisImportantes)
+# Gráfico de linhas
+ggplot(campeoes) +
+  geom_line(aes(x = points, y = goals_scored, color = team))
+
 
 ################################################################################
 #                            GRÁFICO DE DISPERSÃO                              #
 ################################################################################
 # Pontos em função de gols marcados
 ggplotly(
-  ggplot(campeoes_colunasMaisImportantes, aes(x = points, y = goals_scored)) +
-  geom_point(color = "blue", size = 2.0) +
-  geom_smooth(aes(color = "Fitted Values"),
-              method = "lm", formula = y ~x, se = F, linewidth = 1) +
-    xlim(0, max(campeoes_colunasMaisImportantes$points)) +
-    ylim(0, max(campeoes_colunasMaisImportantes$goals_scored)) +
+  ggplot(campeoes, aes(x = points, y = goals_scored)) +
+    geom_point(color = "blue", size = 2.0) +
+    geom_smooth(aes(color = "Fitted Values"),
+                method = "lm", formula = y ~x, se = F, linewidth = 1) +
+    xlim(0, max(campeoes$points)) +
+    ylim(0, max(campeoes$goals_scored)) +
     labs(x = "Pontos",
          y = "Goals Marcados",
          title = paste("R²:",
-                       round(((cor(campeoes_colunasMaisImportantes$points, 
-                                   campeoes_colunasMaisImportantes$goals_scored))^2),4))) +
+                       round(((cor(campeoes$points, 
+                                   campeoes$goals_scored))^2),4))) +
     scale_color_manual("Legenda:",
                        values = "grey",) +
     theme_classic()
 )
 
+# Pontos em função de gols sofridos
+ggplotly(
+  ggplot(campeoes, aes(x = points, y = goals_against)) +
+    geom_point(color = "blue", size = 2.0) +
+    geom_smooth(aes(color = "Fitted Values"),
+                method = "lm", formula = y ~x, se = F, linewidth = 1) +
+    xlim(0, max(campeoes$points)) +
+    ylim(0, max(campeoes$goals_against)) +
+    labs(x = "Pontos",
+         y = "Goals Marcados",
+         title = paste("R²:",
+                       round(((cor(campeoes$points, 
+                                   campeoes$goals_against))^2),4))) +
+    scale_color_manual("Legenda:",
+                       values = "grey",) +
+    theme_classic()
+)
+
+
 # Pontos em função do saldo de gols
 ggplotly(
-  ggplot(campeoes_colunasMaisImportantes, aes(x = points, y = goals_difference)) +
+  ggplot(campeoes, aes(x = points, y = goals_difference)) +
     geom_point(color = "green", size = 2.0) +
     geom_smooth(aes(color = "Fitted Values"),
                 method = "lm", formula = y ~x, se = F, linewidth = 1) +
-    xlim(0, max(campeoes_colunasMaisImportantes$points)) +
-    ylim(0, max(campeoes_colunasMaisImportantes$goals_difference)) +
+    xlim(0, max(campeoes$points)) +
+    ylim(0, max(campeoes$goals_difference)) +
     labs(x = "Pontos",
          y = "Saldo de Gols",
          title = paste("R²:",
-                       round(((cor(campeoes_colunasMaisImportantes$points, 
-                                   campeoes_colunasMaisImportantes$goals_difference))^2),4))) +
+                       round(((cor(campeoes$points, 
+                                   campeoes$goals_difference))^2),4))) +
     scale_color_manual("Legenda:",
                        values = "grey",) +
     theme_classic()
