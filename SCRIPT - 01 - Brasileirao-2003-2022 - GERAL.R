@@ -92,7 +92,7 @@ ggplot(data = brasileirao) +
 ggplot(brasileirao) +
 geom_point(aes(x = points, y = goals_scored, size = goals_difference, 
                color = position == 1, shape = points > 80)) +
-  geom_smooth(aes(x = points, y = goals_scored), method = "loess", se = FALSE)
+  geom_smooth(aes(x = points, y = goals_scored), method = "loess", se = FALSE) +
   labs(title = "Times no Brasileirao 2003 a 2023",
        x = "Pontos",
        y = "Gols Marcados") +
@@ -128,12 +128,19 @@ geom_point(aes(x = points, y = goals_scored, size = goals_difference,
            y = "valores")
   )
   
+
+# Ferramenta Interativa
+esquisser(brasileirao, viewer = "browser")
+
+################################################################################
+# REGRESSÃO LINEAR SIMPLES
+################################################################################
 # Pontos em função de gols marcados
 ggplotly(
   ggplot(brasileirao, aes(x = points, y = goals_scored)) +
-  geom_point(color = "blue", size = 2.0) +
-  geom_smooth(aes(color = "Fitted Values"),
-              method = "lm", formula = y ~x, se = F, linewidth = 1) +
+    geom_point(color = "blue", size = 2.0) +
+    geom_smooth(aes(color = "Fitted Values"),
+                method = "lm", formula = y ~x, se = F, linewidth = 1) +
     xlim(0, max(brasileirao$points)) +
     ylim(0, max(brasileirao$goals_scored)) +
     labs(x = "Pontos",
@@ -145,13 +152,6 @@ ggplotly(
                        values = "grey",) +
     theme_classic()
 )
-
-# Ferramenta Interativa
-esquisser(brasileirao, viewer = "browser")
-
-################################################################################
-REGRESSÃO
-################################################################################
 
 # Pontos em função de gols sofridos
 ggplotly(
@@ -171,7 +171,6 @@ ggplotly(
     theme_classic()
 )
 
-
 # Pontos em função do saldo de gols
 ggplotly(
   ggplot(brasileirao, aes(x = points, y = goals_difference)) +
@@ -190,3 +189,26 @@ ggplotly(
     theme_classic()
 )
 
+################################################################################
+#           MODELAGEM DE UMA REGRESSÃO LINEAR SIMPLES PARA O EXEMPLO 01        
+################################################################################
+# Estimando o modelo
+modelo_brasileirao_PontosGolsPro <- lm(formula = points ~ goals_scored,
+                         data = brasileirao)
+
+# Observando os parâmetros
+summary(modelo_brasileirao_PontosGolsPro)
+
+# Plotando intervalo de confiança de 95%
+ggplotly(
+  ggplot(modelo_brasileirao_PontosGolsPro, aes(x = points, y = goals_scored)) +
+    geom_point(color = "#39568CFF") +
+    geom_smooth(aes(color = "Fitted Values"),
+                method = "lm", formula = y ~ x,
+                level = 0.95) +
+    labs(x = "Pontos",
+         y = "Gols Marcados") +
+    scale_color_manual("Legenda:",
+                       values = "grey50")+
+    theme_bw()
+)
