@@ -136,24 +136,34 @@ esquisser(brasileirao, viewer = "browser")
 # ANÁLISE DE CLUSTER
 ################################################################################
 # Separando as estatísticas de cada time em uma lista
+
 tabelaTimesBrasileirao <- brasileirao[brasileirao$year == 2003 &
                                             brasileirao$position == 1,]
 
-i_brasileirao <- 1
-i_tabelaTimes <- 1
-while(i_brasileirao <= 410){
-  for(i_tabelaTimes in 1:length(tabelaTimesBrasileirao)){
-    timeBrasileirao <- (brasileirao$team[i_brasileirao])
+tabelaTimesBrasileirao[2,] <- brasileirao[brasileirao$year == 2004 &
+                                        brasileirao$position == 1,]
+
+tabelaTimesBrasileirao[3,] <- brasileirao[brasileirao$year == 2005 &
+                                            brasileirao$position == 1,]
+
+for (i_brasileirao in 1:410){
+  timeBrasileirao <- (brasileirao$team[i_brasileirao])
+  print(paste("## timeBrasileirao[", timeBrasileirao, "] - i_brasileirao(", 
+              i_brasileirao, ")", sep = ''))
+  for(i_tabelaTimes in 1:100){
     timeASerIncluidoNaLista <- (tabelaTimesBrasileirao$team[i_tabelaTimes])
-    print(timeBrasileirao)
-    print(timeASerIncluidoNaLista)
+    print(paste("timeASerIncluidoNaLista[", timeASerIncluidoNaLista, 
+                "] - i_tabelaTimes(", i_tabelaTimes, ")", sep = ''))
     if(timeBrasileirao == timeASerIncluidoNaLista){
       print("Time já está na lista tabelaTimesBrasileirao")
-    } else{
+      print(" ")
+      next
+    } else {
       print("Incluir time na lista")
       tabelaTimesBrasileirao[i_tabelaTimes,] <- brasileirao[i_brasileirao,]
-    }
+    } 
   }
+  i_tabelaTimes = i_tabelaTimes + 1
 }
 
 
