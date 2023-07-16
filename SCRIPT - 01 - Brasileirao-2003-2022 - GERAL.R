@@ -16,7 +16,7 @@ pacotes <- c("plotly","tidyverse","ggrepel","fastDummies","knitr","kableExtra",
              "splines","reshape2","PerformanceAnalytics","correlation","see",
              "ggraph","psych","nortest","rgl","car","ggside","tidyquant","olsrr",
              "jtools","ggstance","magick","cowplot","emojifont","beepr","Rcpp",
-             "equatiomatic", "readr", "esquisse")
+             "equatiomatic", "readr", "esquisse", "nycflights13", "AggregateR")
 
 options(rgl.debug = TRUE)
 
@@ -137,35 +137,21 @@ esquisser(brasileirao, viewer = "browser")
 ################################################################################
 # Separando as estatísticas de cada time em uma lista
 
-tabelaTimesBrasileirao <- brasileirao[brasileirao$year == 2003 &
-                                            brasileirao$position == 1,]
+tabelaTimesBrasileiraoAgregate <-Aggregate(x=brasileirao, by='team')
 
-tabelaTimesBrasileirao[2,] <- brasileirao[brasileirao$year == 2004 &
-                                        brasileirao$position == 1,]
-
-tabelaTimesBrasileirao[3,] <- brasileirao[brasileirao$year == 2005 &
-                                            brasileirao$position == 1,]
-
-for (i_brasileirao in 1:410){
-  timeBrasileirao <- (brasileirao$team[i_brasileirao])
-  print(paste("## timeBrasileirao[", timeBrasileirao, "] - i_brasileirao(", 
-              i_brasileirao, ")", sep = ''))
-  for(i_tabelaTimes in 1:100){
-    timeASerIncluidoNaLista <- (tabelaTimesBrasileirao$team[i_tabelaTimes])
-    print(paste("timeASerIncluidoNaLista[", timeASerIncluidoNaLista, 
-                "] - i_tabelaTimes(", i_tabelaTimes, ")", sep = ''))
-    if(timeBrasileirao == timeASerIncluidoNaLista){
-      print("Time já está na lista tabelaTimesBrasileirao")
-      print(" ")
-      next
-    } else {
-      print("Incluir time na lista")
-      tabelaTimesBrasileirao[i_tabelaTimes,] <- brasileirao[i_brasileirao,]
-    } 
-  }
-  i_tabelaTimes = i_tabelaTimes + 1
-}
-
+tabelaTimesBrasileiraoTodos <- select(tabelaTimesBrasileiraoAgregate, 
+                                      team, 
+                                      points_sum,
+                                      points_mean,
+                                      games_sum,
+                                      victories_sum,
+                                      draws_sum,
+                                      losses_sum,
+                                      goals_scored_sum,
+                                      goals_scored_mean,
+                                      goals_against_sum,
+                                      goals_against_mean,
+                                      goals_difference_sum)
 
 ################################################################################
 # REGRESSÃO LINEAR SIMPLES
