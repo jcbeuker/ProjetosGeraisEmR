@@ -12,11 +12,41 @@
 ################################################################################
 # INSTALAÇÃO E CARREGAMENTO DE PACOTES NECESSÁRIOS            
 ################################################################################
-pacotes <- c("plotly","tidyverse","ggrepel","fastDummies","knitr","kableExtra",
-             "splines","reshape2","PerformanceAnalytics","correlation","see",
-             "ggraph","psych","nortest","rgl","car","ggside","tidyquant","olsrr",
-             "jtools","ggstance","magick","cowplot","emojifont","beepr","Rcpp",
-             "equatiomatic", "readr", "esquisse", "nycflights13", "AggregateR")
+pacotes <- c("ade4", #função para matriz de distâncias em variáveis binárias
+             "cluster", #função 'agnes' para elaboração de clusters hierárquicos
+             "plotly", #plataforma gráfica
+             "tidyverse", #carregar outros pacotes do R
+             "ggrepel", #geoms de texto e rótulo para 'ggplot2' que ajudam a
+             #evitar sobreposição de textos
+             "fastDummies",
+             "knitr","kableExtra", #formatação de tabelas
+             "splines",
+             "reshape2", #função 'melt'
+             "factoextra", #função 'fviz_dend' para elaboração de dendogramas
+             "PerformanceAnalytics",
+             "correlation",
+             "see",
+             "ggraph",
+             "psych",
+             "nortest",
+             "rgl",
+             "car",
+             "ggside",
+             "tidyquant",
+             "olsrr",
+             "jtools",
+             "ggstance",
+             "magick",
+             "cowplot",
+             "emojifont",
+             "beepr",
+             "Rcpp",
+             "equatiomatic", 
+             "readr", 
+             "esquisse", 
+             "nycflights13", 
+             "AggregateR") # função 'Aggregate' para agregar dados de um DF ou 
+                           # tabela
 
 options(rgl.debug = TRUE)
 
@@ -136,10 +166,10 @@ esquisser(brasileirao, viewer = "browser")
 # ANÁLISE DE CLUSTER
 ################################################################################
 # Separando as estatísticas de cada time em uma lista
+# Funcao 'Aggregate' do pacote 'AggregateR'
+tabelaTimesBrasileiraoAggregate <-Aggregate(x=brasileirao, by='team')
 
-tabelaTimesBrasileiraoAgregate <-Aggregate(x=brasileirao, by='team')
-
-tabelaTimesBrasileiraoTodos <- select(tabelaTimesBrasileiraoAgregate, 
+tabelaTimesBrasileiraoTodos <- select(tabelaTimesBrasileiraoAggregate, 
                                       team, 
                                       points_sum,
                                       points_mean,
@@ -152,6 +182,81 @@ tabelaTimesBrasileiraoTodos <- select(tabelaTimesBrasileiraoAgregate,
                                       goals_against_sum,
                                       goals_against_mean,
                                       goals_difference_sum)
+
+## As variáveis apresentam unidades de medida e amplitudes distintas
+# Padronizando as variáveis
+tabelaTimesBrasileiraoTodosPadronizado <- as.data.frame(scale(
+  tabelaTimesBrasileiraoTodos[,2:12]))
+rownames(tabelaTimesBrasileiraoTodosPadronizado) <- 
+  tabelaTimesBrasileiraoTodos$team
+
+## Todas as variáveis passam a ter média = 0 e desvio padrão = 1. Por exemplo:
+round(mean(tabelaTimesBrasileiraoTodosPadronizado$points_sum),3)
+round(sd(tabelaTimesBrasileiraoTodosPadronizado$points_sum),3)
+
+## Esquema de aglomeração hierárquico
+
+# Matriz de dissimilarides
+matriz_D <- tabelaTimesBrasileiraoTodosPadronizado %>% 
+  dist(method = "euclidean")
+
+# 1º Teste: elaboração da clusterização hierárquica como 'single linkage'
+cluster_hier_single <- agnes(x = matriz_D, method = "single")
+
+# Construção do dendograma 'single linkage'
+dev.off()
+fviz_dend(x = cluster_hier_single, show_labels = T)
+
+## O método de encadeamento single linkage não permite uma clusterização útil
+## Pode-se interpretar que as observações estão muito próximas umas das outras
+
+# 2º Teste: elaboração da clusterização hierárquica com 'complete linkage'
+cluster_hier_complete <- agnes(x = matriz_D, method = "complete")
+
+# Construção do dendograma 'complete linkage'
+fviz_dend(x = cluster_hier_complete, show_labels = T)
+
+## O método de encadeamento complete linkage melhora significativamente
+
+# 3º Teste: elaboração da clusterização hierárquica como 'average linkage'
+cluster_hier_average <- agnes(x = matriz_D, method = "average")
+
+# Construção do dendograma 'average linkage'
+fviz_dend(x = cluster_hier_average, show_labels = T)
+
+## Vamos optar pelo complete linkage (average cria clusters com menos 
+# observações)
+
+# Dendograma com visualização dos clusters selecionando por 'altura'
+fviz_dend(x = cluster_hier_complete,
+          h = 5.5,
+          color_labels_by_k = F,
+          rect = T,
+          rect_fill = T,
+          rect_border = "black",
+          lwd = 1,
+          show_labels = T,
+          ggtheme = theme_bw())
+
+# Formam 8 clusters cortando o dendograma em 5.5
+
+# Detalhando o esquema hierárquico
+coeficientes <- sort(cluster_hier_complete$height, decreasing = F)
+esquema <- as.data.frame(cbind(cluster_hier_complete$merge, coeficientes))
+names(esquema) <- c("Cluster1", "Cluster2", "Coeficientes")
+esquema
+
+# Portanto, vamos gerar uma variável indicando 8 clusters
+tabelaTimesBrasileiraoTodos$cluster_Hier <- 
+  factor(cutree(tree = cluster_hier_complete, k = 8))
+
+tabelaTimesBrasileiraoTodosPadronizado$cluster_Hier <-
+  factor(cutree(tree = cluster_hier_complete, k = 8))
+
+# Verificando se todas as variáveis ajudam na formação dos grupos
+summary(anova_points_sum <- aov(formula = points_sum ~ cluster_Hier,
+                                data = tabelaTimesBrasileiraoTodosPadronizado))
+
 
 ################################################################################
 # REGRESSÃO LINEAR SIMPLES
