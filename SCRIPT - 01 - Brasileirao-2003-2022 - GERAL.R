@@ -172,21 +172,18 @@ tabelaTimesBrasileiraoAggregate <-Aggregate(x=brasileirao, by='team')
 tabelaTimesBrasileiraoTodos <- select(tabelaTimesBrasileiraoAggregate, 
                                       team, 
                                       points_sum,
-                                      points_mean,
                                       games_sum,
                                       victories_sum,
                                       draws_sum,
                                       losses_sum,
                                       goals_scored_sum,
-                                      goals_scored_mean,
                                       goals_against_sum,
-                                      goals_against_mean,
                                       goals_difference_sum)
 
 ## As variáveis apresentam unidades de medida e amplitudes distintas
 # Padronizando as variáveis
 tabelaTimesBrasileiraoTodosPadronizado <- as.data.frame(scale(
-  tabelaTimesBrasileiraoTodos[,2:12]))
+  tabelaTimesBrasileiraoTodos[,2:9]))
 rownames(tabelaTimesBrasileiraoTodosPadronizado) <- 
   tabelaTimesBrasileiraoTodos$team
 
@@ -194,11 +191,26 @@ rownames(tabelaTimesBrasileiraoTodosPadronizado) <-
 round(mean(tabelaTimesBrasileiraoTodosPadronizado$points_sum),3)
 round(sd(tabelaTimesBrasileiraoTodosPadronizado$points_sum),3)
 
-## Esquema de aglomeração hierárquico
+#------------------- Esquema de aglomeração hierárquico ------------------------
 
 # Matriz de dissimilarides
 matriz_D <- tabelaTimesBrasileiraoTodosPadronizado %>% 
   dist(method = "euclidean")
+
+# Method: parametrização da distância a ser utilizada:
+## "euclidean": distância euclidiana
+## "euclidiana quadrática": elevar ao quadrado matriz_D (matriz_D^2)
+## "maximum": distância de Chebychev;
+## "manhattan": distância de Manhattan (ou distância absoluta ou bloco);
+## "canberra": distância de Canberra;
+## "minkowski": distância de Minkowski
+
+# Visualizando a matriz de dissimilarides
+data.matrix(matriz_D) %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = "striped",
+                full_width = FALSE,
+                font_size = 14)
 
 # 1º Teste: elaboração da clusterização hierárquica como 'single linkage'
 cluster_hier_single <- agnes(x = matriz_D, method = "single")
@@ -229,7 +241,7 @@ fviz_dend(x = cluster_hier_average, show_labels = T)
 
 # Dendograma com visualização dos clusters selecionando por 'altura'
 fviz_dend(x = cluster_hier_complete,
-          h = 5.5,
+          h = 1.7,
           color_labels_by_k = F,
           rect = T,
           rect_fill = T,
@@ -238,7 +250,7 @@ fviz_dend(x = cluster_hier_complete,
           show_labels = T,
           ggtheme = theme_bw())
 
-# Formam 8 clusters cortando o dendograma em 5.5
+# Formam 7 clusters cortando o dendograma em 1.7
 
 # Detalhando o esquema hierárquico
 coeficientes <- sort(cluster_hier_complete$height, decreasing = F)
@@ -246,16 +258,72 @@ esquema <- as.data.frame(cbind(cluster_hier_complete$merge, coeficientes))
 names(esquema) <- c("Cluster1", "Cluster2", "Coeficientes")
 esquema
 
-# Portanto, vamos gerar uma variável indicando 8 clusters
+# Portanto, vamos gerar uma variável indicando 7 clusters
 tabelaTimesBrasileiraoTodos$cluster_Hier <- 
-  factor(cutree(tree = cluster_hier_complete, k = 8))
+  factor(cutree(tree = cluster_hier_complete, k = 7))
 
 tabelaTimesBrasileiraoTodosPadronizado$cluster_Hier <-
-  factor(cutree(tree = cluster_hier_complete, k = 8))
+  factor(cutree(tree = cluster_hier_complete, k = 7))
 
-# Verificando se todas as variáveis ajudam na formação dos grupos
+# Análise de variância de um fator (ANOVA). Interpretação do output:
+
+## Mean Sq do cluster_H: indica a variabilidade entre grupos
+## Mean Sq dos Residuals: indica a variabilidade dentro dos grupos
+## F value: estatística de teste (Sum Sq do cluster_H / Sum Sq dos Residuals)
+## Pr(>F): p-valor da estatística 
+## p-valor < 0.05: pelo menos um cluster apresenta média estatisticamente 
+## diferente dos demais
+
+## A variável mais discriminante dos grupos contém maior estatística F 
+## (e significativa)
+
 summary(anova_points_sum <- aov(formula = points_sum ~ cluster_Hier,
                                 data = tabelaTimesBrasileiraoTodosPadronizado))
+
+summary(anova_games_sum <- aov(formula = games_sum ~ cluster_Hier,
+                                data = tabelaTimesBrasileiraoTodosPadronizado))
+
+summary(anova_victories_sum <- aov(formula = victories_sum ~ cluster_Hier,
+                                data = tabelaTimesBrasileiraoTodosPadronizado))
+
+summary(anova_draws_sum <- aov(formula = draws_sum ~ cluster_Hier,
+                                data = tabelaTimesBrasileiraoTodosPadronizado))
+
+summary(anova_losses_sum <- aov(formula = losses_sum ~ cluster_Hier,
+                                data = tabelaTimesBrasileiraoTodosPadronizado))
+
+summary(anova_goals_scored_sum <- aov(formula = goals_scored_sum ~ cluster_Hier,
+                                data = tabelaTimesBrasileiraoTodosPadronizado))
+
+summary(anova_goals_against_sum <- 
+          aov(formula = goals_against_sum ~ cluster_Hier,
+                                data = tabelaTimesBrasileiraoTodosPadronizado))
+
+summary(anova_goals_difference_sum <- 
+          aov(formula = goals_difference_sum ~ cluster_Hier,
+                                data = tabelaTimesBrasileiraoTodosPadronizado))
+
+# Todas auxiliam na formação de pelo menos um cluster
+
+# O que os clusters indicam? Vamos interpretar algumas variáveis médias:
+
+analise <- group_by(tabelaTimesBrasileiraoTodos, cluster_Hier) %>% 
+  summarise(points_sum = mean(points_sum, na.rm = TRUE),
+            games_sum = mean(games_sum, na.rm = TRUE),
+            victories_sum = mean(victories_sum, na.rm = TRUE),
+            draws_sum = mean(draws_sum, na.rm = TRUE),
+            losses_sum = mean(losses_sum, na.rm = TRUE),
+            goals_scored_sum = mean(goals_scored_sum, na.rm = TRUE),
+            goals_against_sum = mean(goals_against_sum, na.rm = TRUE),
+            goals_difference_sum = mean(goals_difference_sum, na.rm = TRUE))
+
+## Por exemplo, os times dos clusters 1 e 2 apresentam:
+## Alta soma de pontos, maiores somas de jogos.
+## Os times do cluster 3 apresentam a mais baixa soma de pontos.
+
+#------------ Esquema de aglomeração não hierárquico K-MEANS--------------------
+# Elaboração da clusterização não hieráquica k-means
+
 
 
 ################################################################################
