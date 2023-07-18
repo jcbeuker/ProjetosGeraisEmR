@@ -8,7 +8,7 @@
 #   <https://www.kaggle.com/datasets/josevitormichelin/brazilian-football-champi
 #    onship-brasileiro>
 #
-# ANÁLISE DE EXPLORATÓRIA
+# ANÁLISE EXPLORATÓRIA
 ################################################################################
 # INSTALAÇÃO E CARREGAMENTO DE PACOTES NECESSÁRIOS            
 ################################################################################
@@ -215,6 +215,10 @@ data.matrix(matriz_D) %>%
 # 1º Teste: elaboração da clusterização hierárquica como 'single linkage'
 cluster_hier_single <- agnes(x = matriz_D, method = "single")
 
+# As distâncias do esquema hierárquico de aglomeração
+coeficientes <- sort(cluster_hier_single$height, decreasing = FALSE)
+coeficientes
+
 # Construção do dendograma 'single linkage'
 dev.off()
 fviz_dend(x = cluster_hier_single, show_labels = T)
@@ -323,8 +327,44 @@ analise <- group_by(tabelaTimesBrasileiraoTodos, cluster_Hier) %>%
 
 #------------ Esquema de aglomeração não hierárquico K-MEANS--------------------
 # Elaboração da clusterização não hieráquica k-means
+cluster_kmeans <- kmeans(tabelaTimesBrasileiraoTodos[,2:9],
+                         centers = 4)
+# Criando variável categórica para indicação do cluster no banco de dados
+tabelaTimesBrasileiraoTodos$cluster_K <- factor(cluster_kmeans$cluster)
 
+# Método de Elbow para identificação do número ótimo de clusters
+fviz_nbclust(tabelaTimesBrasileiraoTodos[,2:9], kmeans, 
+             method = "wss", k.max = 10)
 
+# Visualização da base de dados
+tabelaTimesBrasileiraoTodos %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = "striped",
+                full_width = FALSE,
+                font_size = 14)
+
+# Análise de variância de um fator (ANOVA)
+
+# ANOVA da variável 'points_sum'
+summary(anova_points_sum <- aov(formula = points_sum ~ cluster_K,
+                                data = tabelaTimesBrasileiraoTodos))
+
+# ANOVA da variável 'games_sum'
+summary(anova_games_sum <- aov(formula = games_sum ~ cluster_K,
+                                data = tabelaTimesBrasileiraoTodos))
+
+# ANOVA da variável 'victories_sum'
+summary(anova_victories_sum <- aov(formula = victories_sum ~ cluster_K,
+                                data = tabelaTimesBrasileiraoTodos))
+
+# Comparando os resultados dos esquemas hierárquico e não hierárquico
+tabelaTimesBrasileiraoTodos %>% 
+  select(team, cluster_Hier, cluster_K) %>% 
+  arrange(team) %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = "striped",
+                full_width = FALSE,
+                font_size = 14)
 
 ################################################################################
 # REGRESSÃO LINEAR SIMPLES
