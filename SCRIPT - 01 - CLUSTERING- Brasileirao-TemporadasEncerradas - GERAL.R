@@ -23,7 +23,7 @@ pacotes <- c("ade4", #função para matriz de distâncias em variáveis binária
              "splines",
              "reshape2", #função 'melt'
              "factoextra", #função 'fviz_dend' para elaboração de dendogramas
-             "PerformanceAnalytics",
+             "PerformanceAnalytics", #função 'chart.Correlation' para plotagem
              "correlation",
              "see",
              "ggraph",
