@@ -8,7 +8,6 @@
 #   <https://www.kaggle.com/datasets/josevitormichelin/brazilian-football-champi
 #    onship-brasileiro>
 #
-# ANÁLISE EXPLORATÓRIA
 ################################################################################
 # INSTALAÇÃO E CARREGAMENTO DE PACOTES NECESSÁRIOS            
 ################################################################################
@@ -36,6 +35,7 @@ pacotes <- c("ade4", #função para matriz de distâncias em variáveis binária
              "olsrr",
              "jtools",
              "ggstance",
+             "ggplot2",
              "magick",
              "cowplot",
              "emojifont",
@@ -63,15 +63,9 @@ if(sum(as.numeric(!pacotes %in% installed.packages())) != 0){
 # CARREGAMENTO DOS DADOS              
 ################################################################################
 # Convertendo o arquivo para o encoding UFT-F
-# writeLines(iconv(readLines("202301_SeguroDefeso.csv"), 
-#                 from = "WINDOWS-1252", to = "UTF-8"), 
-#                file("202301_SeguroDefeso_UTF8.csv", encoding = "UTF-8"))
-#
-# Carregando com o arquivo convertido para UTF-8
-#favorecidos <- read.csv2("202301_SeguroDefeso_UTF8.csv", 
-#                           sep= ";", dec = ",") 
 
-brasileirao <- read.csv( "dataset-Posicoes-Times-Brasileirao-2003-2022.csv"
+brasileirao <- 
+  read.csv( "dataset-Posicoes-Times-Brasileirao-Temporadas-Encerradas.csv"
                         , sep = ";"
                         , dec = ","
                         , encoding = "UTF-8")
